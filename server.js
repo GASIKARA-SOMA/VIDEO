@@ -10,3 +10,6 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur le port ${PORT}`);
 });
+app.get('/api/games', (req, res) => {
+    res.json({ message: 'Liste des jeux bientôt disponible!' });
+});
