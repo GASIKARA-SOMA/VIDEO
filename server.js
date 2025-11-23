@@ -11,5 +11,5 @@ app.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur le port ${PORT}`);
 });
 app.get('/api/games', (req, res) => {
-    res.json({ message: 'Liste des jeux bientôt disponible!' });
+    res.json(gamesData); // ← Renvoie TES jeux actuels
 });
