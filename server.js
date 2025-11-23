@@ -1,4 +1,33 @@
-const express = require('express');
+
+const crypto = require('crypto');
+
+// ⚠️ AJOUTER CES 2 FONCTIONS :
+const adminSessions = new Map();
+
+function generateToken() {
+    return crypto.randomBytes(32).toString('hex');
+}
+
+function requireAuth(req, res, next) {
+    const token = req.headers.authorization;
+    
+    if (!token) {
+        return res.status(401).json({ error: "🔐 Token manquant" });
+    }
+    
+    const session = adminSessions.get(token);
+    
+    if (!session) {
+        return res.status(401).json({ error: "🔐 Session invalide" });
+    }
+    
+    if (Date.now() > session.expiresAt) {
+        adminSessions.delete(token);
+        return res.status(401).json({ error: "🔐 Session expirée" });
+    }
+    
+    next();
+}const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
@@ -282,7 +311,7 @@ app.get('/', (req, res) => {
     }
   });
 });
-app.delete('/api/admin/jeux/:id', async (req, res) => {
+app.delete('/api/admin/jeux/:id', requireAuth, async (req, res) => {
   try {
     await pool.query('DELETE FROM jeux WHERE id = $1', [req.params.id]);
     res.json({ success: true });
@@ -290,7 +319,8 @@ app.delete('/api/admin/jeux/:id', async (req, res) => {
     res.status(500).json({ error: 'Erreur suppression' });
   }
 });
-app.put('/api/admin/jeux/:id', async (req, res) => {
+
+app.put('/api/admin/jeux/:id', requireAuth, async (req, res) => {
   try {
     const { titre, plateforme, description, image_url, lien_officiel, categorie } = req.body;
     
@@ -306,7 +336,7 @@ app.put('/api/admin/jeux/:id', async (req, res) => {
   }
 });
 
-app.get('/api/admin/jeux', async (req, res) => {
+app.get('/api/admin/jeux', requireAuth, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM jeux ORDER BY id');
     res.json(result.rows);
