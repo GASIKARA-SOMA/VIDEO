@@ -1713,7 +1713,12 @@ async function enregistrerTelechargement(jeuId) {
 
 async function generateGames(platform) {
     const scroller = document.getElementById(`${platform}-scroller`);
-    if (!scroller) {
+    
+    // ⚠️ REMPLACER gamesData par un appel API
+    const games = await chargerJeux(platform);
+    
+    // Le reste de ton code...
+} if (!scroller) {
         console.warn(`❌ Scroller ${platform} non trouvé`);
         return;
     }
