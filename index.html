@@ -1,5 +1,4 @@
-
-          
+     
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1993,6 +1992,208 @@ follower.style.transform = 'scale(1)';
 }
 
 // =============================================
+// GESTION ADMIN COMPLÈTE
+// =============================================
+
+// Gestion des onglets admin
+function setupAdminTabs() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.getAttribute('data-tab');
+            
+            // Désactiver tous les onglets
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            // Activer l'onglet cliqué
+            btn.classList.add('active');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+            
+            // Charger les données si nécessaire
+            if (tabId === 'games') {
+                chargerJeuxAdmin();
+            }
+        });
+    });
+}
+
+// Charger la liste des jeux pour l'admin
+async function chargerJeuxAdmin() {
+    const gamesList = document.getElementById('admin-games-list');
+    if (!gamesList) return;
+    
+    try {
+        gamesList.innerHTML = '<div class="loading">Chargement des jeux...</div>';
+        
+        const jeux = await chargerJeux('all');
+        
+        if (jeux.length === 0) {
+            gamesList.innerHTML = '<div class="no-games">Aucun jeu dans la base</div>';
+            return;
+        }
+        
+        gamesList.innerHTML = jeux.map(jeu => `
+            <div class="game-item" data-game-id="${jeu.id}">
+                <div class="game-item-info">
+                    <strong>${jeu.titre}</strong>
+                    <div class="game-platforms">${jeu.plateforme}</div>
+                    <small>${jeu.description.substring(0, 60)}...</small>
+                </div>
+                <div class="game-item-actions">
+                    <button class="btn-edit" onclick="editerJeu(${jeu.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-delete" onclick="supprimerJeu(${jeu.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        gamesList.innerHTML = '<div class="error">Erreur de chargement</div>';
+        console.error('Erreur chargement admin:', error);
+    }
+}
+
+// Ajouter un nouveau jeu
+async function ajouterJeu(event) {
+    event.preventDefault();
+    
+    const formData = {
+        titre: document.getElementById('game-title').value,
+        plateforme: Array.from(document.querySelectorAll('input[name="platform"]:checked'))
+                       .map(cb => cb.value).join('/'),
+        description: document.getElementById('game-description').value,
+        image_url: document.getElementById('game-image').value || null,
+        lien_officiel: document.getElementById('game-link').value || null,
+        categorie: document.getElementById('game-category').value
+    };
+    
+    try {
+        const response = await fetch(`${API_URL}/admin/jeux`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            alert('✅ Jeu ajouté avec succès !');
+            document.getElementById('add-game-form').reset();
+            // Recharger la liste des jeux
+            await chargerJeuxAdmin();
+        } else {
+            alert('❌ Erreur lors de l\'ajout du jeu');
+        }
+    } catch (error) {
+        console.error('Erreur ajout jeu:', error);
+        alert('❌ Erreur de connexion');
+    }
+}
+
+// Recherche dans l'admin
+function setupAdminSearch() {
+    const searchInput = document.getElementById('admin-search');
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const gameItems = document.querySelectorAll('.game-item');
+        
+        gameItems.forEach(item => {
+            const title = item.querySelector('strong').textContent.toLowerCase();
+            const description = item.querySelector('small').textContent.toLowerCase();
+            
+            if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+}
+
+// Fonctions à implémenter plus tard
+function editerJeu(jeuId) {
+    alert(`📝 Édition du jeu ${jeuId} - À implémenter`);
+    // Ouvrir un modal d'édition avec les données du jeu
+}
+
+function supprimerJeu(jeuId) {
+    if (confirm('❌ Supprimer ce jeu ? Cette action est irréversible.')) {
+        alert(`🗑️ Suppression du jeu ${jeuId} - À implémenter`);
+        // Appel API pour suppression
+    }
+}
+
+// Mettre à jour les stats admin
+async function updateAdminStats() {
+    try {
+        // Mettre à jour le compteur de jeux
+        const jeux = await chargerJeux('all');
+        document.getElementById('games-count').textContent = jeux.length;
+        
+        // Trouver le jeu le plus populaire (à améliorer)
+        if (jeux.length > 0) {
+            document.getElementById('popular-game').textContent = jeux[0].titre;
+        }
+    } catch (error) {
+        console.error('Erreur stats admin:', error);
+    }
+}
+
+// Initialisation admin complète
+function setupAdminPanelComplet() {
+    const statLink = document.getElementById('stat-link');
+    const adminPanel = document.getElementById('admin-panel');
+    const overlay = document.getElementById('overlay');
+    const closeAdmin = document.getElementById('close-admin');
+    const closeAdminBtn = document.getElementById('close-admin-btn');
+    const resetStats = document.getElementById('reset-stats');
+    const addGameForm = document.getElementById('add-game-form');
+    
+    // Onglets admin
+    setupAdminTabs();
+    setupAdminSearch();
+    
+    // Ouvrir le panel admin
+    statLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        adminPanel.classList.add('active');
+        overlay.classList.add('active');
+        updateAdminStats();
+    });
+    
+    // Fermer le panel admin
+    function closeAdminPanel() {
+        adminPanel.classList.remove('active');
+        overlay.classList.remove('active');
+    }
+    
+    closeAdmin.addEventListener('click', closeAdminPanel);
+    closeAdminBtn.addEventListener('click', closeAdminPanel);
+    overlay.addEventListener('click', closeAdminPanel);
+    
+    // Réinitialiser les statistiques
+    resetStats.addEventListener('click', function() {
+        localStorage.setItem('visitorCount', '0');
+        localStorage.setItem('downloadCount', '0');
+        document.getElementById('visitor-count').textContent = '0';
+        document.getElementById('download-count').textContent = '0';
+    });
+    
+    // Formulaire d'ajout de jeu
+    if (addGameForm) {
+        addGameForm.addEventListener('submit', ajouterJeu);
+    }
+}
+
+              
+
+// =============================================
 // SCROLL VIDÉOS (EXISTANT)
 // =============================================
 
@@ -2048,7 +2249,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Démarrer les fonctionnalités
     setupStats();
     setupSearch();
-    setupAdminPanel();
+    setupAdminPanelComplet();
     setupPlaceholderLinks();
     setupCustomCursor();
     setupVideoScroll();
