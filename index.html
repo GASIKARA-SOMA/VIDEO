@@ -152,7 +152,128 @@
             pointer-events: none;
         }
 
-        /* ====== NAVIGATION ====== */
+/* Styles Admin Complet */
+.admin-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 1rem;
+    background: none;
+    border: none;
+    color: var(--gray);
+    cursor: pointer;
+    transition: all 0.3s;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn.active {
+    color: var(--color-mint);
+    border-bottom-color: var(--color-mint);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.search-admin {
+    margin-bottom: 1rem;
+}
+
+.search-admin input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    color: white;
+}
+
+.games-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.game-item {
+    background: rgba(255,255,255,0.05);
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    display: flex;
+    justify-content: between;
+    align-items: center;
+}
+
+.game-item-info {
+    flex: 1;
+}
+
+.game-item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.game-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    color: var(--color-mint);
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 0.8rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    color: white;
+}
+
+.form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.platform-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.platform-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--light);
+    font-weight: normal;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+
+                /* ====== NAVIGATION ====== */
         nav {
             position: absolute;
             top: 20px;
@@ -164,7 +285,7 @@
             border-radius: 16px;
             border: 1px solid var(--glass-border);
             box-shadow: 0 8px 32px var(--glass-shadow);
-        }
+        }      
 
         .nav-container {
             display: flex;
@@ -1130,13 +1251,23 @@ height: 380px;
     <div class="overlay" id="overlay"></div>
 
     <!-- Panel Admin -->
-    <div class="admin-panel" id="admin-panel">
-        <div class="admin-header">
-            <h2 class="admin-title">Tableau de Bord Admin</h2>
-            <button class="close-admin" id="close-admin">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
+<!-- Panel Admin Complet -->
+<div class="admin-panel" id="admin-panel">
+    <div class="admin-header">
+        <h2 class="admin-title">🚀 Tableau de Bord Admin</h2>
+        <button class="close-admin" id="close-admin">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="stats">📊 Statistiques</button>
+        <button class="tab-btn" data-tab="games">🎮 Gestion Jeux</button>
+        <button class="tab-btn" data-tab="add-game">➕ Ajouter Jeu</button>
+    </div>
+
+    <!-- TAB 1: STATISTIQUES -->
+    <div class="tab-content active" id="stats-tab">
         <div class="stats-container">
             <div class="stat-card">
                 <div class="stat-value" id="visitor-count">0</div>
@@ -1146,16 +1277,99 @@ height: 380px;
                 <div class="stat-value" id="download-count">0</div>
                 <div class="stat-label">Téléchargements</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-value" id="games-count">0</div>
+                <div class="stat-label">Jeux Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="popular-game">-</div>
+                <div class="stat-label">Jeu Populaire</div>
+            </div>
         </div>
+        
         <div class="admin-actions">
             <button class="admin-btn reset" id="reset-stats">
-                <i class="fas fa-redo"></i> Réinitialiser
+                <i class="fas fa-redo"></i> Réinitialiser Stats
             </button>
-            <button class="admin-btn" id="close-admin-btn">
-                <i class="fas fa-check"></i> Fermer
+            <button class="admin-btn export" id="export-stats">
+                <i class="fas fa-download"></i> Exporter Données
             </button>
         </div>
     </div>
+
+    <!-- TAB 2: GESTION JEUX -->
+    <div class="tab-content" id="games-tab">
+        <div class="search-admin">
+            <input type="text" id="admin-search" placeholder="🔍 Rechercher un jeu...">
+        </div>
+        <div class="games-list" id="admin-games-list">
+            <!-- Liste des jeux chargée par JavaScript -->
+            <div class="loading">Chargement des jeux...</div>
+        </div>
+    </div>
+
+    <!-- TAB 3: AJOUTER JEU -->
+    <div class="tab-content" id="add-game-tab">
+        <form class="game-form" id="add-game-form">
+            <div class="form-group">
+                <label>Titre du Jeu *</label>
+                <input type="text" id="game-title" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Plateformes *</label>
+                <div class="platform-checkboxes">
+                    <label><input type="checkbox" name="platform" value="PS"> PlayStation</label>
+                    <label><input type="checkbox" name="platform" value="Xbox"> Xbox</label>
+                    <label><input type="checkbox" name="platform" value="PC"> PC</label>
+                    <label><input type="checkbox" name="platform" value="Mobile"> Mobile</label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Description *</label>
+                <textarea id="game-description" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>URL Image</label>
+                <input type="url" id="game-image" placeholder="https://...">
+            </div>
+            
+            <div class="form-group">
+                <label>Lien Officiel</label>
+                <input type="url" id="game-link" placeholder="https://...">
+            </div>
+            
+            <div class="form-group">
+                <label>Catégorie</label>
+                <select id="game-category">
+                    <option value="action">Action</option>
+                    <option value="rpg">RPG</option>
+                    <option value="fps">FPS</option>
+                    <option value="battle-royale">Battle Royale</option>
+                    <option value="sport">Sport</option>
+                    <option value="social">Social</option>
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="admin-btn">
+                    <i class="fas fa-plus"></i> Ajouter le Jeu
+                </button>
+                <button type="reset" class="admin-btn reset">
+                    <i class="fas fa-eraser"></i> Effacer
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="admin-footer">
+        <button class="admin-btn" id="close-admin-btn">
+            <i class="fas fa-check"></i> Fermer
+        </button>
+    </div>
+</div>
 
     <!-- Header Grand Format -->
     <header class="main-header" id="mainHeader">
