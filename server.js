@@ -38,6 +38,8 @@ async function initialiserBaseDeDonnees() {
     `);
     console.log('✅ Table jeux créée');
 
+    
+
     // Vérifier si la table est vide
     const result = await pool.query('SELECT COUNT(*) FROM jeux');
     const count = parseInt(result.rows[0].count);
@@ -100,10 +102,75 @@ app.post('/api/admin/jeux', async (req, res) => {
     res.status(500).json({ error: 'Erreur ajout jeu' });
   }
 });
+
+// Ajoute au début avec les autres requires
+const crypto = require('crypto');
+
+// Stockage des sessions admin
+const adminSessions = new Map();
+
+// Générer un token sécurisé
+function generateToken() {
+    return crypto.randomBytes(32).toString('hex');
+}
+
+// Middleware d'authentification
+function requireAuth(req, res, next) {
+    const token = req.headers.authorization;
+    
+    if (!token) {
+        return res.status(401).json({ error: "🔐 Token manquant" });
+    }
+    
+    const session = adminSessions.get(token);
+    
+    if (!session) {
+        return res.status(401).json({ error: "🔐 Session invalide" });
+    }
+    
+    // Vérifier l'expiration (1 heure)
+    if (Date.now() > session.expiresAt) {
+        adminSessions.delete(token);
+        return res.status(401).json({ error: "🔐 Session expirée" });
+    }
+    
+    // Session valide, continuer
+    next();
+}
 // =============================================
 // APIs PRINCIPALES
 // =============================================
-
+// API de connexion admin
+app.post('/api/admin/login', (req, res) => {
+    const { password } = req.body;
+    
+    // Mot de passe admin (à mettre en variable d'environnement plus tard)
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Gasikara2024!";
+    
+    if (password === ADMIN_PASSWORD) {
+        // Créer une session
+        const token = generateToken();
+        const session = {
+            token: token,
+            expiresAt: Date.now() + (60 * 60 * 1000), // 1 heure
+            createdAt: new Date().toISOString()
+        };
+        
+        adminSessions.set(token, session);
+        
+        res.json({ 
+            success: true, 
+            message: "✅ Connexion réussie",
+            token: token,
+            expiresIn: 3600
+        });
+    } else {
+        res.status(401).json({ 
+            success: false, 
+            message: "❌ Mot de passe incorrect" 
+        });
+    }
+});
 // API 1: Récupérer les jeux par plateforme
 app.get('/api/jeux', async (req, res) => {
   try {
