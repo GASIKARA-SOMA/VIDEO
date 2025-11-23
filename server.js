@@ -85,7 +85,21 @@ async function initialiserBaseDeDonnees() {
     console.error('❌ Erreur initialisation base:', error);
   }
 }
-
+app.post('/api/admin/jeux', async (req, res) => {
+  try {
+    const { titre, plateforme, description, image_url, lien_officiel, categorie } = req.body;
+    
+    const result = await pool.query(
+      `INSERT INTO jeux (titre, plateforme, description, image_url, lien_officiel, categorie) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [titre, plateforme, description, image_url, lien_officiel, categorie]
+    );
+    
+    res.json({ success: true, jeu: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur ajout jeu' });
+  }
+});
 // =============================================
 // APIs PRINCIPALES
 // =============================================
@@ -200,6 +214,38 @@ app.get('/', (req, res) => {
       test: '/api/test'
     }
   });
+});
+app.delete('/api/admin/jeux/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM jeux WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur suppression' });
+  }
+});
+app.put('/api/admin/jeux/:id', async (req, res) => {
+  try {
+    const { titre, plateforme, description, image_url, lien_officiel, categorie } = req.body;
+    
+    const result = await pool.query(
+      `UPDATE jeux SET titre=$1, plateforme=$2, description=$3, image_url=$4, lien_officiel=$5, categorie=$6 
+       WHERE id=$7 RETURNING *`,
+      [titre, plateforme, description, image_url, lien_officiel, categorie, req.params.id]
+    );
+    
+    res.json({ success: true, jeu: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur modification' });
+  }
+});
+
+app.get('/api/admin/jeux', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM jeux ORDER BY id');
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur liste jeux' });
+  }
 });
 
 // =============================================
