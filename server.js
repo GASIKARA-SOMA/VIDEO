@@ -1,15 +1,241 @@
-
 const express = require('express');
+const { Pool } = require('pg');
+const cors = require('cors');
+const path = require('path');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-    res.json({ message: 'Backend GasikaraSoma fonctionne!' });
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Connexion PostgreSQL
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Serveur démarré sur le port ${PORT}`);
+// Créer les tables et insérer les données
+async function initialiserBaseDeDonnees() {
+  try {
+    console.log('🗄️  Initialisation de la base de données...');
+
+    // Créer la table jeux
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS jeux (
+        id SERIAL PRIMARY KEY,
+        titre VARCHAR(100) NOT NULL,
+        plateforme VARCHAR(50) NOT NULL,
+        description TEXT,
+        image_url VARCHAR(200),
+        categorie VARCHAR(50),
+        lien_officiel VARCHAR(200),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Table jeux créée');
+
+    // Vérifier si la table est vide
+    const result = await pool.query('SELECT COUNT(*) FROM jeux');
+    const count = parseInt(result.rows[0].count);
+
+    if (count === 0) {
+      console.log('📥 Insertion des jeux initiaux...');
+      
+      // Insérer les jeux initiaux
+      await pool.query(`
+        INSERT INTO jeux (titre, plateforme, description, image_url, categorie, lien_officiel) VALUES
+        ('Fortnite', 'PS5/PC/PS4', 'Battle Royale gratuit avec construction', 'https://images.unsplash.com/photo-1551103782-8ab07afd45c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', 'battle-royale', 'https://www.epicgames.com/fortnite/fr/home'),
+        ('Rocket League', 'PC/PS5/Xbox', 'Football avec des voitures rocket', 'https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', 'sport', 'https://www.epicgames.com/rocketleague/fr/home'),
+        ('Among Us', 'PC/Mobile', 'Jeu de déduction sociale dans l espace', 'https://images.unsplash.com/photo-1618335829737-222e57b6d979?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', 'social', 'https://www.innersloth.com/gameAmongUs.php'),
+        ('Valorant', 'PC', 'FPS tactique avec agents aux pouvoirs uniques', 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', 'fps', 'https://playvalorant.com/'),
+        ('God of War Ragnarok', 'PS5/PS4', 'Épopée nordique de Kratos et Atreus', 'https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', 'action', 'https://www.playstation.com/fr-fr/games/god-of-war-ragnarok/'),
+        ('Halo Infinite', 'Xbox/PC', 'Le Master Chief dans une nouvelle aventure', 'https://images.unsplash.com/photo-1551103782-8ab07afd45c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', 'fps', 'https://www.halowaypoint.com/'),
+        ('Cyberpunk 2077', 'PC/PS5/Xbox', 'RPG futuriste dans Night City', 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', 'rpg', 'https://www.cyberpunk.net/'),
+        ('Genshin Impact', 'Mobile/PC/PS5', 'RPG action en monde ouvert gratuit', 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', 'rpg', 'https://genshin.hoyoverse.com/'),
+        ('Call of Duty: Warzone', 'PC/PS5/Xbox', 'Battle Royale gratuit de Call of Duty', 'https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', 'battle-royale', 'https://www.callofduty.com/warzone'),
+        ('Apex Legends', 'PC/PS5/Xbox/Mobile', 'Battle Royale avec des légends uniques', 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', 'battle-royale', 'https://www.ea.com/games/apex-legends')
+      `);
+      console.log('✅ Jeux initiaux insérés');
+    }
+
+    // Créer la table pour les statistiques
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS statistiques (
+        id SERIAL PRIMARY KEY,
+        type VARCHAR(50) NOT NULL,
+        valeur INTEGER DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Initialiser les statistiques
+    await pool.query(`
+      INSERT INTO statistiques (type, valeur) 
+      VALUES ('telechargements', 0)
+      ON CONFLICT (type) DO NOTHING
+    `);
+
+    console.log('✅ Base de données initialisée avec succès');
+
+  } catch (error) {
+    console.error('❌ Erreur initialisation base:', error);
+  }
+}
+
+// =============================================
+// APIs PRINCIPALES
+// =============================================
+
+// API 1: Récupérer les jeux par plateforme
+app.get('/api/jeux', async (req, res) => {
+  try {
+    const { plateforme } = req.query;
+    let query = 'SELECT * FROM jeux';
+    let params = [];
+
+    if (plateforme) {
+      if (plateforme === 'console') {
+        query += ' WHERE plateforme ILIKE $1 OR plateforme ILIKE $2';
+        params = ['%ps%', '%xbox%'];
+      } else if (plateforme === 'pc') {
+        query += ' WHERE plateforme ILIKE $1';
+        params = ['%pc%'];
+      } else if (plateforme === 'mobile') {
+        query += ' WHERE plateforme ILIKE $1';
+        params = ['%mobile%'];
+      }
+    }
+
+    query += ' ORDER BY titre';
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error('❌ Erreur API jeux:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
-app.get('/api/games', (req, res) => {
-    res.json(gamesData); // ← Renvoie TES jeux actuels
+
+// API 2: Recherche de jeux
+app.get('/api/recherche', async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q || q.length < 2) {
+      return res.json([]);
+    }
+
+    const result = await pool.query(
+      `SELECT * FROM jeux 
+       WHERE titre ILIKE $1 OR description ILIKE $1 OR plateforme ILIKE $1
+       ORDER BY titre`,
+      [`%${q}%`]
+    );
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error('❌ Erreur API recherche:', error);
+    res.status(500).json({ error: 'Erreur recherche' });
+  }
 });
+
+// API 3: Enregistrer un téléchargement
+app.post('/api/telechargements', async (req, res) => {
+  try {
+    const { jeuId } = req.body;
+
+    // Incrémenter le compteur global
+    await pool.query(`
+      UPDATE statistiques 
+      SET valeur = valeur + 1, updated_at = NOW()
+      WHERE type = 'telechargements'
+    `);
+
+    // Ici tu pourrais aussi enregistrer le jeu spécifique téléchargé
+    console.log(`📥 Téléchargement enregistré pour jeu: ${jeuId}`);
+
+    res.json({ success: true, message: 'Téléchargement enregistré' });
+
+  } catch (error) {
+    console.error('❌ Erreur API téléchargements:', error);
+    res.status(500).json({ error: 'Erreur enregistrement' });
+  }
+});
+
+// API 4: Récupérer les statistiques
+app.get('/api/statistiques', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM statistiques');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Erreur API statistiques:', error);
+    res.status(500).json({ error: 'Erreur statistiques' });
+  }
+});
+
+// API 5: Route de test
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: '🚀 Gasikara Video Game API fonctionne!',
+    version: '1.0',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Route racine
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Bienvenue sur Gasikara Video Game Backend!',
+    endpoints: {
+      jeux: '/api/jeux',
+      recherche: '/api/recherche',
+      telechargements: '/api/telechargements',
+      statistiques: '/api/statistiques',
+      test: '/api/test'
+    }
+  });
+});
+
+// =============================================
+// DÉMARRAGE DU SERVEUR
+// =============================================
+
+async function demarrerServeur() {
+  try {
+    // Initialiser la base de données
+    await initialiserBaseDeDonnees();
+    
+    // Démarrer le serveur
+    app.listen(PORT, () => {
+      console.log('=================================');
+      console.log('🚀 GASIKARA VIDEO GAME BACKEND');
+      console.log('=================================');
+      console.log(`📍 Port: ${PORT}`);
+      console.log(`🌐 URL: http://localhost:${PORT}`);
+      console.log(`🗄️  Base: ${process.env.DATABASE_URL ? 'Connectée' : 'Non configurée'}`);
+      console.log('=================================');
+      console.log('✅ Serveur démarré avec succès!');
+      console.log('=================================');
+    });
+
+  } catch (error) {
+    console.error('❌ Erreur démarrage serveur:', error);
+    process.exit(1);
+  }
+}
+
+// Gestion propre de l'arrêt
+process.on('SIGINT', async () => {
+  console.log('🛑 Arrêt du serveur...');
+  await pool.end();
+  process.exit(0);
+});
+
+// Démarrer l'application
+demarrerServeur();
