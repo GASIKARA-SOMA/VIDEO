@@ -1,1 +1,1916 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GasikaraSoma - Plateforme Gaming Futuriste</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ====== VARIABLES ET RESET ====== */
+        :root {
+            --color-deep-space: #0a0a23;
+            --color-space-cadet: #1d1e40;
+            --color-neon-cyan: #00f0ff;
+            --color-mint: #7fffd4;
+            --color-ice: #e0f7fa;
+            --color-purple: #9d4edd;
+            --color-pink: #ff4d6d;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-shadow: rgba(0, 0, 0, 0.2);
+            --darker: #070716;
+            --light: #ffffff;
+            --gray: #b0b0b0;
+            --primary-red: #8B0000;
+            --secondary-red: #A52A2A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--color-deep-space), var(--color-space-cadet));
+            color: white;
+            overflow-x: hidden;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%2300f0ff" opacity="0.7"/></svg>'), auto;
+        }
+
+        /* ====== LOADING SCREEN ====== */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-deep-space);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loading-logo {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 2rem;
+            background: linear-gradient(90deg, var(--primary-red), var(--color-neon-cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .loading-bar-container {
+            width: 300px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .loading-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary-red), var(--color-neon-cyan));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .loading-text {
+            color: var(--color-mint);
+            font-size: 1.1rem;
+        }
+
+        /* ====== CURSOR PERSONNALISÉ ====== */
+        .custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, var(--color-neon-cyan) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.1s ease;
+        }
+
+        .cursor-follower {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--color-neon-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transition: transform 0.15s ease, opacity 0.3s ease;
+            opacity: 0.5;
+        }
+
+        /* ====== HEADER GRAND FORMAT ====== */
+        .main-header {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+            background: 
+                linear-gradient(135deg, rgba(10, 10, 22, 0.9) 0%, rgba(5, 5, 16, 0.8) 100%),
+                var(--header-bg, linear-gradient(45deg, var(--primary-red), var(--darker)));
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            overflow: hidden;
+        }
+
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 0, 85, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 234, 255, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        /* ====== NAVIGATION ====== */
+        nav {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            padding: 15px;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px var(--glass-shadow);
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: nowrap;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .search-bar {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 16px 50px 16px 20px;
+            border: 2px solid var(--color-neon-cyan);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1.1em;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .search-bar i {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-neon-cyan);
+            font-size: 1.2em;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-icons a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 15px 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            min-width: 80px;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .nav-icons a:hover {
+            background: rgba(0, 240, 255, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 240, 255, 0.2);
+            border-color: var(--color-neon-cyan);
+        }
+
+        .nav-icons i {
+            font-size: 1.6em;
+            color: var(--color-neon-cyan);
+        }
+
+        .nav-icons span {
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        /* ====== CONTENU HEADER ====== */
+        .header-content {
+            max-width: 800px;
+            position: relative;
+            z-index: 10;
+            margin-top: 100px;
+        }
+
+        .header-title {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+        }
+
+        .header-title .white { 
+            color: var(--light); 
+        }
+
+        .header-title .red { 
+            color: var(--primary-red); 
+        }
+
+        .header-subtitle {
+            font-size: 1.5rem;
+            color: var(--gray);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .header-cta {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .cta-btn {
+            padding: 1.2rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .cta-primary {
+            background: linear-gradient(90deg, var(--primary-red), var(--secondary-red));
+            color: var(--light);
+            box-shadow: 0 5px 20px rgba(139, 0, 0, 0.4);
+        }
+
+        .cta-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(139, 0, 0, 0.6);
+        }
+
+        .cta-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--primary-red);
+            transform: translateY(-5px);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: var(--gray);
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-indicator i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            40% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+            60% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+        }
+        /* ===== Vidéo === */
+           .sota{
+      font-family: Times new roman, sans-serif;
+      margin: 20px;
+    }
+
+    h1 {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .video-scroller {
+      overflow-x: auto; /* scroll horizontal */
+      padding: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 180px); /* 5 colonnes */
+      grid-template-rows: 1fr;                 /* 1 ligne */
+      gap: 15px;
+    }
+
+    .video-grid video {
+      width: 100%;
+      height: 300px;       /* vertical rectangle */
+      object-fit: cover;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .video-grid video:hover {
+      transform: scale(1.05);
+            }
+
+        /* ====== SECTIONS ====== */
+        .sec { 
+            padding: 80px 20px; 
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .sec h2 {
+            margin-bottom: 15px;
+            font-size: 2.8em;
+            font-weight: bold;
+            color: var(--color-mint);
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(127, 255, 212, 0.5);
+        }
+
+        .sub {
+            color: var(--light);
+            font-size: 1.3em;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            max-width: 800px;
+        }
+
+        /* ====== CAROUSEL AMÉLIORÉ ====== */
+        .caro {
+            display: flex;
+            overflow-x: auto;
+            gap: 30px;
+            scroll-behavior: smooth;
+            padding: 20px 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-mint) transparent;
+        }
+
+        .caro::-webkit-scrollbar { 
+            height: 8px; 
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .caro::-webkit-scrollbar-thumb { 
+            background: var(--color-mint); 
+            border-radius: 4px; 
+        }
+
+        /* ====== GAME CARD AMÉLIORÉE ====== */
+        .game-ca {
+            min-width: 320px;
+            height: 420px;
+            border-radius: 16px;
+            transition: 0.4s;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .game-ca::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent 0%, rgba(10, 10, 35, 0.9) 80%);
+            z-index: 1;
+        }
+
+        .game-ca:hover { 
+            transform: translateY(-15px) scale(1.03); 
+            box-shadow: 0 15px 40px var(--color-mint); 
+        }
+
+        .game-ca h3 { 
+            position: relative;
+            z-index: 2;
+            margin-top: 0;
+            padding: 0 20px;
+            text-align: left; 
+            color: var(--light); 
+            font-size: 2.2em; 
+            font-weight: bold;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+            margin-bottom: 10px;
+        }
+
+        .game-ca p { 
+            position: relative;
+            z-index: 2;
+            padding: 0 20px; 
+            font-size: 1.1em; 
+            color: var(--light); 
+            margin-top: 0; 
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .game-ca a button {
+            position: relative;
+            z-index: 2;
+            width: calc(100% - 40px);
+            margin: 0 20px 25px;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--primary-red), var(--secondary-red));
+            color: var(--light);
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(139, 0, 0, 0.4);
+        }
+
+        .game-ca a button:hover { 
+            background: linear-gradient(90deg, var(--secondary-red), var(--primary-red));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 0, 0, 0.6);
+        }
+
+        /* ====== SÉPARATEURS FUTURISTES ====== */
+        .section-divider {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, transparent, var(--darker));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .divider-console {
+            background: 
+                linear-gradient(90deg, rgba(255, 0, 85, 0.1), rgba(0, 234, 255, 0.1)),
+                url('https://images.unsplash.com/photo-1486572788966-cfd3df1f5b42?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .divider-pc {
+            background: 
+                linear-gradient(90deg, rgba(0, 234, 255, 0.1), rgba(157, 0, 255, 0.1)),
+                url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .divider-mobile {
+            background: 
+                linear-gradient(90deg, rgba(157, 0, 255, 0.1), rgba(255, 0, 85, 0.1)),
+                url('https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .divider-content {
+            text-align: center;
+            max-width: 800px;
+            padding: 0 20px;
+        }
+
+        .divider-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, var(--color-mint), var(--color-neon-cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .divider-subtitle {
+            font-size: 1.3rem;
+            color: var(--light);
+            line-height: 1.5;
+        }
+
+        /* ====== SECTIONS DE JEUX AMÉLIORÉES ====== */
+        .platform-section {
+            padding: 80px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 3.2rem;
+            font-weight: 900;
+            text-align: left;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, var(--color-mint), var(--color-neon-cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+
+        .section-subtitle {
+            text-align: left;
+            font-size: 1.4rem;
+            color: var(--light);
+            margin-bottom: 3rem;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+
+        /* ====== SCROLLERS DE JEUX AMÉLIORÉS ====== */
+        .scroller-container {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .games-scroller {
+            display: grid;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding: 1.5rem;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-mint) transparent;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .games-scroller::-webkit-scrollbar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .games-scroller::-webkit-scrollbar-thumb {
+            background: var(--color-mint);
+            border-radius: 4px;
+        }
+
+        /* CONSOLE - 3x5 */
+        #console-scroller {
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            grid-auto-flow: column;
+            height: 750px;
+        }
+
+        /* PC - 3x6 */
+        #pc-scroller {
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            grid-auto-flow: column;
+            height: 750px;
+        }
+
+        /* MOBILE - 3x8 */
+        #mobile-scroller {
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            grid-auto-flow: column;
+            height: 750px;
+        }
+
+        /* ====== CARTES DE JEU AMÉLIORÉES ====== */
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.4s;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(127, 255, 212, 0.5);
+            z-index: 10;
+            border-color: var(--color-mint);
+        }
+
+        .game-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .game-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(transparent, rgba(10, 10, 22, 0.9));
+        }
+
+        .game-info {
+            padding: 1.2rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: rgba(10, 10, 22, 0.9);
+        }
+
+        .game-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            color: var(--light);
+            line-height: 1.3;
+        }
+
+        .game-description {
+            font-size: 1rem;
+            color: var(--light);
+            margin-bottom: 1.2rem;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        .game-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .game-platforms {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .platform-icon {
+            font-size: 1.3rem;
+        }
+
+        .ps-icon { color: #0066cc; }
+        .xbox-icon { color: #0e7a0d; }
+        .pc-icon { color: #ff9900; }
+        .mobile-icon { color: #00cc99; }
+
+        .download-btn {
+            background: linear-gradient(90deg, var(--primary-red), var(--secondary-red));
+            color: var(--light);
+            border: none;
+            border-radius: 50px;
+            padding: 0.7rem 1.2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(139, 0, 0, 0.7);
+        }
+
+        /* ====== INDICATEURS DE SCROLL AMÉLIORÉS ====== */
+        .scroller-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2.5rem;
+        }
+
+        .indicator-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .indicator-dot.active {
+            background: var(--color-mint);
+            box-shadow: 0 0 15px var(--color-mint);
+            transform: scale(1.2);
+        }
+
+        .indicator-dot:hover::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            background: rgba(127, 255, 212, 0.2);
+        }
+
+        /* ====== ESPACE ADMIN ====== */
+        .admin-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 10, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--color-neon-cyan);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            z-index: 10000;
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.3);
+            display: none;
+        }
+
+        .admin-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-neon-cyan);
+        }
+
+        .admin-title {
+            font-size: 1.8rem;
+            color: var(--color-mint);
+            font-weight: 700;
+        }
+
+        .close-admin {
+            background: none;
+            border: none;
+            color: var(--color-neon-cyan);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .close-admin:hover {
+            transform: scale(1.2);
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-mint);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--gray);
+        }
+
+        .admin-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .admin-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--color-mint), var(--color-neon-cyan));
+            color: var(--color-deep-space);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(127, 255, 212, 0.4);
+        }
+
+        .admin-btn.reset {
+            background: linear-gradient(90deg, var(--color-pink), var(--color-purple));
+            color: white;
+        }
+
+        /* ====== OVERLAY ====== */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: none;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        /* ====== FOOTER ====== */
+        footer {
+            background: rgba(5, 5, 16, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem 2rem 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-column h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--light);
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: var(--primary-red);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-red);
+            transform: translateX(5px);
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--light);
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .social-icon:hover {
+            background: var(--primary-red);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* ====== RESPONSIVE DESIGN ====== */
+        @media (max-width: 1200px) {
+            #console-scroller, #pc-scroller, #mobile-scroller {
+                grid-template-columns: repeat(3, 1fr);
+                grid-auto-flow: row;
+                height: auto;
+            }
+            
+            .section-title {
+                font-size: 2.5rem;
+            }
+            
+            .divider-title {
+                font-size: 2rem;
+            }
+            
+            .header-title {
+                font-size: 3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sec h2 {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .game-ca {
+                min-width: 280px;
+                height: 380px;
+            }
+            
+            #console-scroller, #pc-scroller, #mobile-scroller {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .divider-title {
+                font-size: 1.8rem;
+            }
+            
+            .divider-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .header-title {
+                font-size: 2.5rem;
+            }
+            
+            .header-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .search-container {
+                max-width: 100%;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #console-scroller, #pc-scroller, #mobile-scroller {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .header-title {
+                font-size: 2rem;
+            }
+            
+            .header-cta {
+                flex-direction: column;
+            }
+            
+            .cta-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen 
+    <div id="loading-screen">
+        <div class="loading-logo">GasikaraSoma</div>
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loading-bar"></div>
+        </div>
+        <div class="loading-text" id="loading-text">Chargement des mondes gaming...</div>
+    </div>-->
+
+    <!-- Curseurs personnalisés -->
+    <div class="custom-cursor" id="custom-cursor"></div>
+    <div class="cursor-follower" id="cursor-follower"></div>
+
+    <!-- Overlay pour l'admin panel -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Panel Admin -->
+    <div class="admin-panel" id="admin-panel">
+        <div class="admin-header">
+            <h2 class="admin-title">Tableau de Bord Admin</h2>
+            <button class="close-admin" id="close-admin">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value" id="visitor-count">0</div>
+                <div class="stat-label">Visiteurs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="download-count">0</div>
+                <div class="stat-label">Téléchargements</div>
+            </div>
+        </div>
+        <div class="admin-actions">
+            <button class="admin-btn reset" id="reset-stats">
+                <i class="fas fa-redo"></i> Réinitialiser
+            </button>
+            <button class="admin-btn" id="close-admin-btn">
+                <i class="fas fa-check"></i> Fermer
+            </button>
+        </div>
+    </div>
+
+    <!-- Header Grand Format -->
+    <header class="main-header" id="mainHeader">
+        <!-- Navigation -->
+        <nav>
+            <div class="nav-container">
+                <div class="search-container">
+                    <div class="search-bar">
+                        <input type="text" id="search-input" placeholder="Rechercher un jeu, une plateforme...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+                <div class="nav-icons">
+                    <a href="#" id="profile-link">
+                        <i class="fas fa-user-astronaut"></i>
+                        <span>Profil</span>
+                    </a>
+                    <a href="#" id="premium-link">
+                        <i class="fas fa-rocket"></i>
+                        <span>Premium</span>
+                    </a>
+                    <a href="#" id="stat-link">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Stat</span>
+                    </a>
+                    <a href="#" id="club-link">
+                        <i class="fas fa-users"></i>
+                        <span>Club</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Contenu Principal Header -->
+        <div class="header-content">
+          <h1 style="font-size:60px;font-family:Times New Roman;"><em style="color:white;">Gasikara <em style="color:red;">Sôma</em><br>Vidéo</em> <em style="color:#00ff99;">Game</em></h1>
+
+            <p class="header-subtitle">
+                Découvrez l'expérience gaming la plus immersive jamais créée. 
+                Des mondes infinis, des graphismes révolutionnaires et une communauté 
+                de joueurs passionnés vous attendent.
+            </p>
+            <div class="header-cta">
+                <a href="#console" class="cta-btn cta-primary">
+                    <i class="fas fa-play"></i>
+                    Explorer les Jeux
+                </a>
+                <a href="#community" class="cta-btn cta-secondary">
+                    <i class="fas fa-users"></i>
+                    Rejoindre la Communauté
+                </a>
+            </div>
+        </div>
+
+        <!-- Indicateur de défilement -->
+        <div class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+            <div>Découvrir la plateforme</div>
+        </div>
+    </header>
+    
+    <section class="sota">
+  <h1>Ino Malaza<br/>
+Gasikara Soma</h1>
+  <div class="video-scroller">
+    <div class="video-grid">
+      <video src="video1.mp4" controls></video>
+      <video src="video2.mp4" controls></video>
+      <video src="video3.mp4" controls></video>
+      <video src="video4.mp4" controls></video>
+      <video src="video5.mp4" controls></video>
+    </div>
+  </div>
+    </section>
+    <!-- Section Jeux Principaux -->
+    <section class="sec">
+        <h2>Gasikara<br>Soma Video Game</h2>
+        <p class="sub">Expose des jeux video virale, libre a telecharge n'attendez plus !!</p>
+        <div class="caro">
+            <div class="game-ca" style="background-image:url('https://images.unsplash.com/photo-1551103782-8ab07afd45c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                <h3>Fortnite</h3>
+                <p>Plateforme : PS4/PS5 /PC/ PS / Gratuit</p>
+                <a href="https://www.epicgames.com/fortnite/fr/home" target="_blank"><button class="download-trigger">Téléchargement vers site officiel</button></a>
+            </div>
+            <div class="game-ca" style="background-image:url('https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                <h3>Rocket League</h3>
+                <p>Plateforme : PC / Gratuit / Officiel</p>
+                <a href="https://www.epicgames.com/rocketleague/fr/home" target="_blank"><button class="download-trigger">Téléchargement depuis le site officiel</button></a>
+            </div>
+            <div class="game-ca" style="background-image:url('https://images.unsplash.com/photo-1618335829737-222e57b6d979?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                <h3>Among Us</h3>
+                <p>Plateforme : PC / Gratuit / Officiel</p>
+                <a href="https://www.innersloth.com/gameAmongUs.php" target="_blank"><button class="download-trigger">Téléchargement depuis le site officiel</button></a>
+            </div>
+            <div class="game-ca" style="background-image:url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                <h3>Valorant</h3>
+                <p>Plateforme : PC / Gratuit / FPS</p>
+                <a href="https://playvalorant.com/" target="_blank"><button class="download-trigger">Téléchargement depuis le site officiel</button></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Console -->
+    <section class="platform-section" id="console">
+        <h2 class="section-title">PlayStation, Xbox </h2>
+        <p class="section-subtitle">
+            Dans l'arène next-gen !! chaque victoire résonne comme une légende. 
+            Des graphismes et une immersion totale !! 
+        </p>
+
+        <!-- Matrice Console -->
+        <div class="scroller-container">
+            <div class="games-scroller" id="console-scroller">
+                <!-- Jeux console générés par JavaScript -->
+            </div>
+        </div>
+        <div class="scroller-indicators" id="console-indicators">
+            <!-- Indicateurs générés par JavaScript -->
+        </div>
+    </section>
+
+    <!-- Séparateur Futuriste Console -> PC -->
+    <div class="section-divider divider-console">
+        <div class="divider-content">
+            <h3 class="divider-title">PC Gameur</h3>
+            <p class="divider-subtitle">
+                Préparez-vous à passer au niveau supérieur avec la puissance pure du gaming PC
+            </p>
+        </div>
+    </div>
+
+    <!-- Section PC -->
+    <section class="platform-section" id="pc">
+        <h2 class="section-title">Jeux PC</h2>
+        <p class="section-subtitle">
+            Dominez les arènes. Des graphismes à couper le souffle.. une performance imbattable vous attendent !!
+        </p>
+        
+        <!-- Matrice PC -->
+        <div class="scroller-container">
+            <div class="games-scroller" id="pc-scroller">
+                <!-- Jeux PC générés par JavaScript -->
+            </div>
+        </div>
+        <div class="scroller-indicators" id="pc-indicators">
+            <!-- Indicateurs générés par JavaScript -->
+        </div>
+    </section>
+
+    <!-- Séparateur Futuriste PC -> Mobile -->
+    <div class="section-divider divider-pc">
+        <div class="divider-content">
+            <h3 class="divider-title">RÉVOLUTION MOBILE</h3>
+            <p class="divider-subtitle">
+                L'aventure dans votre poche - La puissance du gaming où que vous soyez
+            </p>
+        </div>
+    </div>
+
+    <!-- Section Mobile -->
+    <section class="platform-section" id="mobile">
+        <h2 class="section-title">Jeux Mobile</h2>
+        <p class="section-subtitle">
+            L'aventure dans votre poche! Des gameplay intense où que vous soyez.. warrior !!
+        </p>
+        
+        <!-- Matrice Mobile -->
+        <div class="scroller-container">
+            <div class="games-scroller" id="mobile-scroller">
+                <!-- Jeux mobile générés par JavaScript -->
+            </div>
+        </div>
+        <div class="scroller-indicators" id="mobile-indicators">
+            <!-- Indicateurs générés par JavaScript -->
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>Informations</h3>
+                <ul class="footer-links">
+                    <li><a href="#"><i class="fas fa-info-circle"></i> À propos de nous</a></li>
+                    <li><a href="#"><i class="fas fa-newspaper"></i> Actualités</a></li>
+                    <li><a href="#"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Contact</h3>
+                <ul class="footer-links">
+                    <li><a href="#"><i class="fas fa-envelope"></i> contact@gasikarasoma.com</a></li>
+                    <li><a href="#"><i class="fas fa-phone"></i> +33 1 23 45 67 89</a></li>
+                    <li><a href="#"><i class="fas fa-map-marker-alt"></i> Paris, France</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Légal</h3>
+                <ul class="footer-links">
+                    <li><a href="#"><i class="fas fa-shield-alt"></i> Politique de confidentialité</a></li>
+                    <li><a href="#"><i class="fas fa-file-contract"></i> Conditions d'utilisation</a></li>
+                    <li><a href="#"><i class="fas fa-cookie"></i> Cookies</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Suivez-nous </h3>
+                <div class="social-icons">
+                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-discord"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+          GasikaraSoma Video Game. Tous droits réservés.
+        </div>
+    </footer>
+
+    <script>
+        // =============================================
+        // INITIALISATION ET DONNÉES
+        // =============================================
+
+        // Données des jeux pour chaque plateforme
+        const gamesData = {
+            console: [
+                {
+                    title: "God of War Ragnarok",
+                    description: "Vivez l'épopée nordique de Kratos et Atreus dans ce chef-d'œuvre épique.",
+                    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["ps"],
+                    category: "action"
+                },
+                {
+                    title: "Halo Infinite",
+                    description: "Rejoignez le Master Chief dans sa plus grande aventure pour sauver l'humanité.",
+                    image: "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["xbox"],
+                    category: "fps"
+                },
+                {
+                    title: "Horizon Forbidden West",
+                    description: "Explorez un monde post-apocalyptique rempli de créatures mécaniques.",
+                    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["ps"],
+                    category: "rpg"
+                },
+                {
+                    title: "Forza Horizon 5",
+                    description: "Course libre dans les magnifiques paysages du Mexique.",
+                    image: "https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["xbox"],
+                    category: "racing"
+                },
+                {
+                    title: "Spider-Man 2",
+                    description: "Enfilez le costume de Spider-Man dans une aventure new-yorkaise palpitante.",
+                    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["ps"],
+                    category: "action"
+                },
+                {
+                    title: "Starfield",
+                    description: "Explorez la galaxie dans ce RPG spatial de Bethesda.",
+                    image: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["xbox"],
+                    category: "rpg"
+                }
+            ],
+            pc: [
+                {
+                    title: "Cyberpunk 2077",
+                    description: "Plongez dans Night City, une mégalopole obsédante et dangereuse.",
+                    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["pc"],
+                    category: "rpg"
+                },
+                {
+                    title: "Elden Ring",
+                    description: "Un monde fantastique créé par Hidetaka Miyazaki et George R. R. Martin.",
+                    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["pc"],
+                    category: "rpg"
+                },
+                {
+                    title: "Baldur's Gate 3",
+                    description: "Un RPG épique dans l'univers de Donjons & Dragons.",
+                    image: "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["pc"],
+                    category: "rpg"
+                },
+                {
+                    title: "Call of Duty: Warzone",
+                    description: "Battle Royale intense avec l'action signature de Call of Duty.",
+                    image: "https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["pc"],
+                    category: "fps"
+                },
+                {
+                    title: "The Witcher 3",
+                    description: "Suivez Geralt de Riv dans sa quête à travers un monde déchiré par la guerre.",
+                    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["pc"],
+                    category: "rpg"
+                },
+                {
+                    title: "Apex Legends",
+                    description: "Battle Royale futuriste avec des légendes aux capacités uniques.",
+                    image: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["pc"],
+                    category: "fps"
+                }
+            ],
+            mobile: [
+                {
+                    title: "Genshin Impact",
+                    description: "Explorez Teyvat dans ce RPG d'action en monde ouvert époustouflant.",
+                    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["mobile"],
+                    category: "rpg"
+                },
+                {
+                    title: "PUBG Mobile",
+                    description: "Battle Royale intense sur mobile avec des graphismes impressionnants.",
+                    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["mobile"],
+                    category: "battle-royale"
+                },
+                {
+                    title: "Call of Duty: Mobile",
+                    description: "L'action de Call of Duty optimisée pour le jeu mobile.",
+                    image: "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["mobile"],
+                    category: "fps"
+                },
+                {
+                    title: "Clash Royale",
+                    description: "Combinez stratégie et action dans ce jeu compétitif en temps réel.",
+                    image: "https://images.unsplash.com/photo-1534423861386-85a16f5d13fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["mobile"],
+                    category: "strategy"
+                },
+                {
+                    title: "Among Us",
+                    description: "Trouvez l'imposteur parmi l'équipage dans ce jeu de déduction social.",
+                    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["mobile"],
+                    category: "social"
+                },
+                {
+                    title: "Pokémon GO",
+                    description: "Attrapez des Pokémon dans le monde réel avec la réalité augmentée.",
+                    image: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                    platforms: ["mobile"],
+                    category: "ar"
+                }
+            ]
+        };
+      
+const API_URL = 'https://video-jjn3.onrender.com/api';
+const scroller = document.querySelector('.video-scroller');
+
+    let scrollAmount = 0;
+    const scrollStep = 2; // vitesse du scroll automatique
+    let isUserScrolling = false;
+    let scrollTimeout;
+
+    function autoScroll() {
+      if (!isUserScrolling) {
+        scrollAmount += scrollStep;
+        if (scrollAmount >= scroller.scrollWidth - scroller.clientWidth) {
+          scrollAmount = 0; // revient au début
+        }
+        scroller.scrollLeft = scrollAmount;
+      }
+      requestAnimationFrame(autoScroll);
+    }
+
+    // Détecte le scroll manuel
+    scroller.addEventListener('scroll', () => {
+      isUserScrolling = true;
+      clearTimeout(scrollTimeout);
+
+      // Reprendre le scroll auto après 2s d'inactivité
+      scrollTimeout = setTimeout(() => {
+        isUserScrolling = false;
+        scrollAmount = scroller.scrollLeft; // reprendre là où l'utilisateur a scrollé
+      }, 2000);
+    });
+
+    autoScroll>();
+
+
+        
+        // =============================================
+        // FONCTIONS PRINCIPALES
+        // =============================================
+
+        // Fonction pour générer les jeux
+        function generateGames(platform) {
+            const scroller = document.getElementById(`${platform}-scroller`);
+            const games = gamesData[platform];
+            
+            scroller.innerHTML = '';
+            
+            games.forEach(game => {
+                const gameCard = document.createElement('div');
+                gameCard.className = 'game-card';
+                gameCard.setAttribute('data-title', game.title.toLowerCase());
+                gameCard.setAttribute('data-category', game.category);
+                
+                let platformsHTML = '';
+                game.platforms.forEach(platform => {
+                    let iconClass = '';
+                    switch(platform) {
+                        case 'ps': iconClass = 'ps-icon'; break;
+                        case 'xbox': iconClass = 'xbox-icon'; break;
+                        case 'pc': iconClass = 'pc-icon'; break;
+                        case 'mobile': iconClass = 'mobile-icon'; break;
+                    }
+                    platformsHTML += `<i class="fab fa-${platform} platform-icon ${iconClass}"></i>`;
+                });
+                
+                gameCard.innerHTML = `
+                    <div class="game-image" style="background-image: url('${game.image}')"></div>
+                    <div class="game-info">
+                        <h3 class="game-title">${game.title}</h3>
+                        <p class="game-description">${game.description}</p>
+                        <div class="game-footer">
+                            <div class="game-platforms">
+                                ${platformsHTML}
+                            </div>
+                            <a href="#" class="download-btn download-trigger">
+                                <i class="fas fa-download"></i>
+                                Télécharger
+                            </a>
+                        </div>
+                    </div>
+                `;
+                
+                scroller.appendChild(gameCard);
+            });
+        }
+
+        // Gestion des indicateurs de scroll
+        function setupScrollIndicators(platform) {
+            const scroller = document.getElementById(`${platform}-scroller`);
+            const indicatorsContainer = document.getElementById(`${platform}-indicators`);
+            
+            // Calculer le nombre d'indicateurs nécessaires
+            const gameCount = gamesData[platform].length;
+            const gamesPerView = platform === 'console' ? 5 : platform === 'pc' ? 6 : 8;
+            const indicatorCount = Math.ceil(gameCount / gamesPerView);
+            
+            indicatorsContainer.innerHTML = '';
+            
+            for (let i = 0; i < indicatorCount; i++) {
+                const indicator = document.createElement('div');
+                indicator.className = 'indicator-dot';
+                if (i === 0) indicator.classList.add('active');
+                
+                indicator.addEventListener('click', () => {
+                    // Mettre à jour l'état actif
+                    document.querySelectorAll(`#${platform}-indicators .indicator-dot`).forEach(dot => {
+                        dot.classList.remove('active');
+                    });
+                    indicator.classList.add('active');
+                    
+                    // Faire défiler vers la position
+                    const scrollPosition = i * scroller.offsetWidth;
+                    scroller.scrollTo({
+                        left: scrollPosition,
+                        behavior: 'smooth'
+                    });
+                });
+                
+                indicatorsContainer.appendChild(indicator);
+            }
+            
+            // Mettre à jour les indicateurs lors du défilement
+            scroller.addEventListener('scroll', () => {
+                const scrollPosition = scroller.scrollLeft;
+                const scrollWidth = scroller.scrollWidth - scroller.clientWidth;
+                const activeIndicator = Math.round((scrollPosition / scrollWidth) * (indicatorCount - 1));
+                
+                document.querySelectorAll(`#${platform}-indicators .indicator-dot`).forEach((dot, index) => {
+                    if (index === activeIndicator) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+            });
+
+            // Scroll automatique
+            let autoScrollInterval;
+            let currentScrollIndex = 0;
+
+            function startAutoScroll() {
+                autoScrollInterval = setInterval(() => {
+                    currentScrollIndex = (currentScrollIndex + 1) % indicatorCount;
+                    
+                    document.querySelectorAll(`#${platform}-indicators .indicator-dot`).forEach((dot, index) => {
+                        if (index === currentScrollIndex) {
+                            dot.classList.add('active');
+                            const scrollPosition = currentScrollIndex * scroller.offsetWidth;
+                            scroller.scrollTo({
+                                left: scrollPosition,
+                                behavior: 'smooth'
+                            });
+                        } else {
+                            dot.classList.remove('active');
+                        }
+                    });
+                }, 5000); // Change toutes les 5 secondes
+            }
+
+            function stopAutoScroll() {
+                clearInterval(autoScrollInterval);
+            }
+
+            // Démarrer le scroll automatique
+            startAutoScroll();
+
+            // Arrêter le scroll automatique au survol
+            scroller.addEventListener('mouseenter', stopAutoScroll);
+            scroller.addEventListener('mouseleave', startAutoScroll);
+        }
+
+        // Fonction de recherche
+        function setupSearch() {
+            const searchInput = document.getElementById('search-input');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const allGameCards = document.querySelectorAll('.game-card');
+                
+                allGameCards.forEach(card => {
+                    const title = card.getAttribute('data-title');
+                    const category = card.getAttribute('data-category');
+                    
+                    if (title.includes(searchTerm) || category.includes(searchTerm)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Gestion des statistiques
+        function setupStats() {
+            // Initialiser les statistiques si elles n'existent pas
+            if (!localStorage.getItem('visitorCount')) {
+                localStorage.setItem('visitorCount', '0');
+            }
+            if (!localStorage.getItem('downloadCount')) {
+                localStorage.setItem('downloadCount', '0');
+            }
+            
+            // Incrémenter le compteur de visiteurs
+            let visitorCount = parseInt(localStorage.getItem('visitorCount'));
+            visitorCount++;
+            localStorage.setItem('visitorCount', visitorCount.toString());
+            
+            // Mettre à jour l'affichage
+            document.getElementById('visitor-count').textContent = visitorCount;
+            document.getElementById('download-count').textContent = localStorage.getItem('downloadCount');
+            
+            // Gestion des clics sur les boutons de téléchargement
+            document.querySelectorAll('.download-trigger').forEach(button => {
+                button.addEventListener('click', function() {
+                    let downloadCount = parseInt(localStorage.getItem('downloadCount'));
+                    downloadCount++;
+                    localStorage.setItem('downloadCount', downloadCount.toString());
+                    document.getElementById('download-count').textContent = downloadCount;
+                });
+            });
+        }
+
+        // Gestion du panel admin
+        function setupAdminPanel() {
+            const statLink = document.getElementById('stat-link');
+            const adminPanel = document.getElementById('admin-panel');
+            const overlay = document.getElementById('overlay');
+            const closeAdmin = document.getElementById('close-admin');
+            const closeAdminBtn = document.getElementById('close-admin-btn');
+            const resetStats = document.getElementById('reset-stats');
+            
+            // Ouvrir le panel admin
+            statLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                adminPanel.classList.add('active');
+                overlay.classList.add('active');
+            });
+            
+            // Fermer le panel admin
+            function closeAdminPanel() {
+                adminPanel.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+            
+            closeAdmin.addEventListener('click', closeAdminPanel);
+            closeAdminBtn.addEventListener('click', closeAdminPanel);
+            overlay.addEventListener('click', closeAdminPanel);
+            
+            // Réinitialiser les statistiques
+            resetStats.addEventListener('click', function() {
+                localStorage.setItem('visitorCount', '0');
+                localStorage.setItem('downloadCount', '0');
+                document.getElementById('visitor-count').textContent = '0';
+                document.getElementById('download-count').textContent = '0';
+            });
+        }
+
+        // Gestion des liens non implémentés
+        function setupPlaceholderLinks() {
+            const placeholderLinks = [
+                document.getElementById('profile-link'),
+                document.getElementById('premium-link'),
+                document.getElementById('club-link')
+            ];
+            
+            placeholderLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert("Page encore en phase d'essai");
+                });
+            });
+        }
+
+        // Gestion du curseur personnalisé
+        function setupCustomCursor() {
+            const cursor = document.getElementById('custom-cursor');
+            const follower = document.getElementById('cursor-follower');
+            
+            document.addEventListener('mousemove', function(e) {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+                
+                setTimeout(function() {
+                    follower.style.left = e.clientX + 'px';
+                    follower.style.top = e.clientY + 'px';
+                }, 100);
+            });
+            
+            // Effet au survol des éléments interactifs
+            const interactiveElements = document.querySelectorAll('a, button, .game-card, .nav-icons a');
+            
+            interactiveElements.forEach(element => {
+                element.addEventListener('mouseenter', function() {
+                    cursor.style.transform = 'scale(1.5)';
+                    follower.style.transform = 'scale(1.2)';
+                    follower.style.opacity = '0.8';
+                });
+                
+                element.addEventListener('mouseleave', function() {
+                    cursor.style.transform = 'scale(1)';
+                    follower.style.transform = 'scale(1)';
+                    follower.style.opacity = '0.5';
+                });
+            });
+        }
+
+        // Gestion du loading screen
+        function setupLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const loadingBar = document.getElementById('loading-bar');
+            const loadingText = document.getElementById('loading-text');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    loadingBar.style.width = '100%';
+                    loadingText.textContent = 'Prêt à explorer les mondes gaming !';
+                    
+                    setTimeout(() => {
+                        loadingScreen.style.opacity = '0';
+                        loadingScreen.style.visibility = 'hidden';
+                        
+                        // Initialiser les autres composants après le chargement
+                        initializeComponents();
+                    }, 1000);
+                } else {
+                    loadingBar.style.width = progress + '%';
+                    
+                    // Changer le texte en fonction de la progression
+                    if (progress < 30) {
+                        loadingText.textContent = 'Chargement des mondes gaming...';
+                    } else if (progress < 60) {
+                        loadingText.textContent = 'Initialisation des interfaces...';
+                    } else if (progress < 90) {
+                        loadingText.textContent = 'Préparation des fonctionnalités...';
+                    }
+                }
+            }, 300);
+        }
+
+       /* // Initialiser tous les composants
+        function initializeComponents() {
+            // Générer les jeux pour chaque plateforme
+            generateGames('console');
+            generateGames('pc');
+            generateGames('mobile');
+    
+            
+            // Configurer les indicateurs pour chaque plateforme
+            setupScrollIndicators('console');
+            setupScrollIndicators('pc');
+            setupScrollIndicators('mobile');
+            
+            // Configurer la recherche
+            setupSearch();
+            
+            // Configurer les statistiques
+            setupStats();
+            
+            // Configurer le panel admin
+            setupAdminPanel();
+            
+            // Configurer les liens placeholder
+            setupPlaceholderLinks();
+            
+            // Configurer le curseur personnalisé
+            setupCustomCursor();
+        }
+
+        // =============================================
+        // INITIALISATION AU CHARGEMENT
+        // =============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Démarrer l'écran de chargement
+            setupLoadingScreen();
+        }); */
+    </script>
+
+<script>
+// Fonction qui s'exécute une seule fois
+function notifyOnce() {
+    alert("Veuillez vous mettre en mode ordinateur si vous êtes sur mobile.");
+
+    // Retire l'écouteur après la première exécution
+    document.removeEventListener("click", notifyOnce);
+    document.removeEventListener("touchstart", notifyOnce);
+}
+
+// Déclenche si on clique ou touche l'écran (mobile)
+document.addEventListener("click", notifyOnce);
+document.addEventListener("touchstart", notifyOnce);
+</script>
+
+
+
+
+
+</body>
+</html>
