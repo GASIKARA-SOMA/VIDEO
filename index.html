@@ -91,6 +91,48 @@
             font-size: 1.1rem;
         }
 
+         .login-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 10001;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-content {
+    background: var(--color-space-cadet);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-neon-cyan);
+    text-align: center;
+    min-width: 300px;
+}
+
+.login-content input {
+    width: 100%;
+    padding: 1rem;
+    margin: 1rem 0;
+    border: 1px solid var(--color-neon-cyan);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.login-content button {
+    width: 100%;
+    padding: 1rem;
+    background: var(--primary-red);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
         /* ====== CURSOR PERSONNALISÉ ====== */
         .custom-cursor {
             position: fixed;
@@ -1251,7 +1293,16 @@ height: 380px;
 
     <!-- Panel Admin -->
 <!-- Panel Admin Complet -->
-<div class="admin-panel" id="admin-panel">
+     <!-- Modal de connexion admin -->
+<div class="login-modal" id="login-modal">
+    <div class="login-content">
+        <h3>🔐 Connexion Admin</h3>
+        <input type="password" id="admin-password" placeholder="Mot de passe admin">
+        <button id="login-btn">Se connecter</button>
+        <div id="login-error" style="color: red; display: none;"></div>
+    </div>
+</div>
+     <div class="admin-panel" id="admin-panel">
     <div class="admin-header">
         <h2 class="admin-title">🚀 Tableau de Bord Admin</h2>
         <button class="close-admin" id="close-admin">
@@ -2264,6 +2315,53 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🎯 GasikaraSoma - Prêt !');
 
 });
+let adminToken = null;
+
+// Gestion de la connexion admin
+document.getElementById('login-btn').addEventListener('click', async () => {
+    const password = document.getElementById('admin-password').value;
+    const errorElement = document.getElementById('login-error');
+    
+    try {
+        const response = await fetch('https://video-jjn3.onrender.com/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            adminToken = result.token;
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById('admin-panel').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+        } else {
+            errorElement.textContent = result.message;
+            errorElement.style.display = 'block';
+        }
+    } catch (error) {
+        errorElement.textContent = 'Erreur de connexion';
+        errorElement.style.display = 'block';
+    }
+});
+
+// Modifier l'ouverture du panel admin
+document.getElementById('stat-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    
+    if (adminToken) {
+        // Déjà connecté
+        document.getElementById('admin-panel').classList.add('active');
+        document.getElementById('overlay').classList.add('active');
+    } else {
+        // Montrer la modale de connexion
+        document.getElementById('login-modal').style.display = 'flex';
+        document.getElementById('admin-password').value = '';
+        document.getElementById('login-error').style.display = 'none';
+    }
+});
+         
 
 // =============================================
 // STYLES POUR LES ÉTATS DE CHARGEMENT
