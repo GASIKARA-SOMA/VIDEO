@@ -1561,9 +1561,8 @@ function setupScrollIndicators(platform, gameCount) {
         indicatorsContainer.appendChild(indicator);
     }
 }
-
 // =============================================
-// RECHERCHE
+// RECHERCHE - NOUVELLE VERSION
 // =============================================
 
 function setupSearch() {
@@ -1583,10 +1582,12 @@ function setupSearch() {
             }
             
             try {
+                console.log(`🔍 Recherche: "${searchTerm}"`);
                 const resultats = await rechercherJeux(searchTerm);
+                console.log(`✅ ${resultats.length} résultats trouvés`);
                 filtrerAffichage(resultats);
             } catch (error) {
-                console.error('Erreur recherche:', error);
+                console.error('❌ Erreur recherche:', error);
             }
         }, 300);
     });
@@ -1594,19 +1595,17 @@ function setupSearch() {
 
 function filtrerAffichage(jeuxTrouves) {
     const allGameCards = document.querySelectorAll('.game-card');
-    const jeuxTrouvesIds = jeuxTrouves.map(j => j.id);
-    
     allGameCards.forEach(card => {
-        const jeuId = parseInt(card.getAttribute('data-id'));
-        if (jeuxTrouvesIds.includes(jeuId)) {
-            card.style.display = 'flex';
-        } else {
-            card.style.display = 'none';
-        }
+        card.style.display = 'none';
+    });
+    
+    jeuxTrouves.forEach(jeu => {
+        const cartesCorrespondantes = document.querySelectorAll(`[data-title*="${jeu.titre.toLowerCase()}"]`);
+        cartesCorrespondantes.forEach(carte => {
+            carte.style.display = 'flex';
+        });
     });
 }
-
-
 
 
 
