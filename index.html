@@ -2079,8 +2079,10 @@ async function chargerJeuxAdmin() {
     try {
         gamesList.innerHTML = '<div class="loading">Chargement des jeux...</div>';
         
-        const jeux = await chargerJeux('all');
-        
+        // APRÈS :
+const response = await callSecureAPI('/admin/jeux');
+const jeux = await response.json();
+         
         if (jeux.length === 0) {
             gamesList.innerHTML = '<div class="no-games">Aucun jeu dans la base</div>';
             return;
@@ -2109,7 +2111,16 @@ async function chargerJeuxAdmin() {
         console.error('Erreur chargement admin:', error);
     }
 }
+// Pour supprimer :
+await callSecureAPI(`/admin/jeux/${jeuId}`, {
+    method: 'DELETE'
+});
 
+// Pour modifier :
+await callSecureAPI(`/admin/jeux/${jeuId}`, {
+    method: 'PUT',
+    body: JSON.stringify(formData)
+});
 // Ajouter un nouveau jeu
 async function ajouterJeu(event) {
     event.preventDefault();
@@ -2125,11 +2136,11 @@ async function ajouterJeu(event) {
     };
     
     try {
-        const response = await fetch(`${API_URL}/admin/jeux`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
+        // APRÈS :
+const response = await callSecureAPI('/admin/jeux', {
+    method: 'POST',
+    body: JSON.stringify(formData)
+});
         
         if (response.ok) {
             alert('✅ Jeu ajouté avec succès !');
@@ -2184,7 +2195,9 @@ function supprimerJeu(jeuId) {
 async function updateAdminStats() {
     try {
         // Mettre à jour le compteur de jeux
-        const jeux = await chargerJeux('all');
+        // APRÈS :
+const response = await callSecureAPI('/admin/jeux');
+const jeux = await response.json();
         document.getElementById('games-count').textContent = jeux.length;
         
         // Trouver le jeu le plus populaire (à améliorer)
@@ -2362,7 +2375,52 @@ document.getElementById('stat-link').addEventListener('click', (e) => {
     }
 });
          
+// Fonction pour appeler les APIs sécurisées
+async function callSecureAPI(endpoint, options = {}) {
+    if (!adminToken) {
+        throw new Error('❌ Non connecté');
+    }
+    
+    const defaultOptions = {
+        headers: {
+            'Authorization': adminToken,
+            'Content-Type': 'application/json'
+        }
+    };
+    
+    // Fusionner les options
+    const mergedOptions = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers
+        }
+    };
+    
+    const response = await fetch(`https://video-jjn3.onrender.com/api${endpoint}`, mergedOptions);
+    
+    if (response.status === 401) {
+        // Token expiré ou invalide
+        adminToken = null;
+        throw new Error('🔐 Session expirée');
+    }
+    
+    return response;
+             }
 
+// Fonction de déconnexion
+function logoutAdmin() {
+    adminToken = null;
+    document.getElementById('admin-panel').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+    alert('🔒 Déconnecté');
+}
+
+// Ajouter un bouton déconnexion dans ton admin panel
+
+
+     
 // =============================================
 // STYLES POUR LES ÉTATS DE CHARGEMENT
 // =============================================
